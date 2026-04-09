@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './store/useAppStore';
 
+import Landing from './pages/Landing';
 import MainLayout from './components/layout/MainLayout';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
@@ -26,11 +27,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
 
-        {/* Removed ProtectedRoute so the Demo is public! */}
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
+        {/* Protected Dashboard Layout */}
+        <Route element={<MainLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="system-flow" element={<SystemFlow />} />
           <Route path="cad-viewer" element={<CADViewer />} />
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="reasoning" element={<Reasoning />} />
           <Route path="validation" element={<Validation />} />
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

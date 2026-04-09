@@ -3,8 +3,9 @@ import { useAppStore } from '../store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, BrainCircuit, ArrowRight, Cuboid, PlayCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { Canvas, useLoader } from '@react-three/fiber';
-import { OrbitControls, Stage, Html, RoundedBox } from '@react-three/drei';
+import { OrbitControls, Html, RoundedBox, Center } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
+import * as THREE from 'three';
 
 // Component for Real uploaded STL files
 const STLModel = ({ url }) => {
@@ -19,8 +20,8 @@ const STLModel = ({ url }) => {
   );
 };
 
-// Component for Smartphone Chassis Assembly
-const SmartphoneModel = ({ issues }) => {
+// Component for Realistic Curved Car Door Assembly (Beige Interior)
+const CarDoorModel = ({ issues }) => {
   const { hoveredIssueId, setHoveredIssueId } = useAppStore();
 
   const getMaterialColor = (isValid, meshId) => {
@@ -29,118 +30,221 @@ const SmartphoneModel = ({ issues }) => {
        if (hoveredIssueId === mappedIssue?.id) return "#ff0000";
        return "#ef4444"; 
     }
-    return "#10b981"; // Emerald-500
+    return null;
   };
 
-  const isPlateInvalid = issues.some(i => i.meshId === 'phone-plate-err');
-  const isCutoutInvalid = issues.some(i => i.meshId === 'phone-cutout-err');
-  const isEdgeInvalid = issues.some(i => i.meshId === 'phone-edge-err');
+  const isHingeInvalid = issues.some(i => i.meshId === 'door-hinge-err');
+  const isRibInvalid = issues.some(i => i.meshId === 'door-rib-err');
+  const isEdgeInvalid = issues.some(i => i.meshId === 'door-edge-err');
+
+  // Solid contiguous shapes
+  const doorPanelShape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(-6, -4);
+    s.lineTo(6, -4);
+    s.quadraticCurveTo(6.5, -4, 6.5, -3.5);
+    s.lineTo(6.5, 2);
+    s.quadraticCurveTo(6.5, 2.5, 6, 2.5);
+    s.lineTo(-6, 2.5);
+    s.quadraticCurveTo(-6.5, 2.5, -6.5, 2);
+    s.lineTo(-6.5, -3.5);
+    s.quadraticCurveTo(-6.5, -4, -6, -4);
+    return s;
+  }, []);
+
+  const windowFrameShape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(-6.2, 2.3);
+    s.lineTo(6.2, 2.3);
+    s.lineTo(5.2, 7.8);
+    s.quadraticCurveTo(0, 8.8, -4.5, 7.8);
+    s.lineTo(-6.2, 2.3);
+
+    const hole = new THREE.Path();
+    hole.moveTo(-5.8, 2.5);
+    hole.lineTo(-4.3, 7.4);
+    hole.quadraticCurveTo(0, 8.3, 4.8, 7.4);
+    hole.lineTo(5.8, 2.5);
+    hole.lineTo(-5.8, 2.5);
+    s.holes.push(hole);
+
+    return s;
+  }, []);
+
+  const windowGlassShape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(-5.8, 2.5);
+    s.lineTo(5.8, 2.5);
+    s.lineTo(4.8, 7.4);
+    s.quadraticCurveTo(0, 8.3, -4.3, 7.4);
+    s.lineTo(-5.8, 2.5);
+    return s;
+  }, []);
+
+  const armrestShape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(-4, -1);
+    s.quadraticCurveTo(0, 0, 4, -1);
+    s.lineTo(4.5, -2.5);
+    s.lineTo(-4.5, -2.5);
+    s.lineTo(-4, -1);
+    return s;
+  }, []);
+
+  const lowerPocketShape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(-5, -3.8);
+    s.lineTo(5, -3.8);
+    s.lineTo(4.5, -2.8);
+    s.lineTo(-4.5, -2.8);
+    s.lineTo(-5, -3.8);
+    return s;
+  }, []);
+
+  const extrudeSettingsBase = { depth: 1, bevelEnabled: true, bevelSegments: 4, steps: 2, bevelSize: 0.2, bevelThickness: 0.2 };
+  const extrudeSettingsThin = { depth: 0.2, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.05, bevelThickness: 0.05 };
+  const extrudeSettingsGlass = { depth: 0.05, bevelEnabled: false };
 
   return (
-    <group rotation={[Math.PI / 2, 0, 0]}>
-      
-      {/* Base Chassis Plate (The Aluminum Body) */}
-      <RoundedBox 
-        args={[7, 14, isPlateInvalid ? 0.3 : 0.5]} 
-        radius={0.6}
-        smoothness={4}
-        position={[0, 0, 0]} 
-        castShadow receiveShadow
-        onPointerOver={(e) => { if (isPlateInvalid) { e.stopPropagation(); setHoveredIssueId('ERR-11'); } }}
-        onPointerOut={() => { if (isPlateInvalid) setHoveredIssueId(null); }}
-      >
-        <meshStandardMaterial color={getMaterialColor(!isPlateInvalid, 'phone-plate-err')} metalness={0.8} roughness={0.3} />
-        {hoveredIssueId === 'ERR-11' && (
-          <Html position={[0, -2, 1]} distanceFactor={15} center zIndexRange={[100, 0]}>
-             <div className="bg-rose-600 backdrop-blur text-white text-[12px] font-bold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-rose-300">
-                <AlertCircle className="w-4 h-4 inline-block mr-1" /> Uneven Thickness Variance
-             </div>
-          </Html>
-        )}
-      </RoundedBox>
+    <group rotation={[0, -Math.PI / 4, 0]} scale={[0.8, 0.8, 0.8]}>
+       
+       {/* MAIN BEIGE DOOR PANEL */}
+       <mesh castShadow receiveShadow>
+         <extrudeGeometry args={[doorPanelShape, extrudeSettingsBase]} />
+         <meshStandardMaterial color="#ecca9c" metalness={0.1} roughness={0.7} />
+       </mesh>
 
-      {/* Screen Frame cut out (Valid) */}
-      <RoundedBox args={[6.6, 13.6, 0.1]} radius={0.4} smoothness={4} position={[0, 0, 0.3]} castShadow>
-        <meshStandardMaterial color="#020617" metalness={0.9} roughness={0.1} />
-      </RoundedBox>
+       {/* WINDOW FRAME (Black) */}
+       <mesh position={[0, 0, 0.3]} castShadow>
+          <extrudeGeometry args={[windowFrameShape, extrudeSettingsThin]} />
+          <meshStandardMaterial color="#0f172a" metalness={0.4} roughness={0.6} />
+       </mesh>
 
-      {/* Dynamic Island / Screen Notch (Valid) */}
-      <RoundedBox args={[2.2, 0.5, 0.15]} radius={0.25} smoothness={4} position={[0, 6.2, 0.32]}>
-        <meshStandardMaterial color="#000000" metalness={1} roughness={0} />
-      </RoundedBox>
+       {/* WINDOW GLASS */}
+       <mesh position={[0, 0, 0.4]} castShadow>
+          <extrudeGeometry args={[windowGlassShape, extrudeSettingsGlass]} />
+          <meshStandardMaterial color="#a5b4fc" transparent opacity={0.4} metalness={0.9} roughness={0.1} />
+       </mesh>
 
-      {/* Power Button (Valid) */}
-      <mesh position={[3.55, 3, 0]} castShadow>
-        <boxGeometry args={[0.15, 1.6, 0.15]} />
-        <meshStandardMaterial color="#64748b" metalness={0.7} roughness={0.3} />
-      </mesh>
+       {/* ARMREST (Dark grey/silver inset) */}
+       <mesh position={[0, 0, 1.05]} castShadow>
+          <extrudeGeometry args={[armrestShape, extrudeSettingsThin]} />
+          <meshStandardMaterial color="#1e293b" metalness={0.3} roughness={0.8} />
+       </mesh>
+       {/* Armrest Silver Trim */}
+       <mesh position={[0, -0.2, 1.25]} castShadow>
+          <boxGeometry args={[7, 0.1, 0.1]} />
+          <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.2} />
+       </mesh>
+       {/* Window Switches on Armrest */}
+       <mesh position={[1, -1.5, 1.2]} rotation={[-0.2, 0, 0]} castShadow>
+          <boxGeometry args={[1.5, 0.8, 0.1]} />
+          <meshStandardMaterial color="#020617" />
+       </mesh>
+       <mesh position={[1.2, -1.4, 1.25]} rotation={[-0.2, 0, 0]} castShadow>
+          <boxGeometry args={[0.2, 0.3, 0.05]} />
+          <meshStandardMaterial color="#f8fafc" />
+       </mesh>
 
-      {/* Volume Rockers (Valid) */}
-      <mesh position={[-3.55, 4, 0]} castShadow>
-        <boxGeometry args={[0.15, 2.8, 0.15]} />
-        <meshStandardMaterial color="#64748b" metalness={0.7} roughness={0.3} />
-      </mesh>
+       {/* INNER DOOR HANDLE */}
+       <mesh position={[-2.5, -0.5, 1.1]} castShadow>
+          <sphereGeometry args={[0.4, 32, 32]} />
+          <meshStandardMaterial color="#0f172a" />
+       </mesh>
+       <mesh position={[-2.5, -0.5, 1.3]} castShadow>
+          <boxGeometry args={[0.8, 0.2, 0.3]} />
+          <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.1} />
+       </mesh>
 
-      {/* Camera Module Base Bump (Valid) */}
-      <RoundedBox args={[2.8, 2.8, 0.25]} radius={0.4} smoothness={4} position={[-1.8, 5.2, -0.3]} castShadow receiveShadow>
-        <meshStandardMaterial color="#1e293b" metalness={0.7} roughness={0.4} />
-      </RoundedBox>
+       {/* LOWER POCKET / SPEAKER AREA */}
+       <mesh position={[0, 0, 1.05]} castShadow>
+          <extrudeGeometry args={[lowerPocketShape, extrudeSettingsThin]} />
+          <meshStandardMaterial color="#0f172a" metalness={0.2} roughness={0.9} />
+       </mesh>
+       <mesh position={[-4, -3.3, 1.25]} castShadow>
+          <cylinderGeometry args={[0.8, 0.8, 0.1, 32]} rotation={[Math.PI/2, 0, 0]} />
+          <meshStandardMaterial color="#1e293b" metalness={0.5} roughness={0.8} wireframe={true} />
+       </mesh>
 
-      {/* Double Camera Lenses (Valid) */}
-      <mesh position={[-1.2, 4.6, -0.45]} castShadow>
-         <cylinderGeometry args={[0.5, 0.5, 0.15, 24]} rotation={[Math.PI/2, 0, 0]} />
-         <meshStandardMaterial color="#020617" metalness={0.9} roughness={0.1} />
-         {/* Inner Lens */}
-         <mesh position={[0, 0.1, 0]}>
-            <cylinderGeometry args={[0.2, 0.2, 0.05, 16]} rotation={[0, 0, 0]} />
-            <meshStandardMaterial color="#38bdf8" metalness={1} roughness={0} />
-         </mesh>
-      </mesh>
-      <mesh position={[-2.4, 5.8, -0.45]} castShadow>
-         <cylinderGeometry args={[0.5, 0.5, 0.15, 24]} rotation={[Math.PI/2, 0, 0]} />
-         <meshStandardMaterial color="#020617" metalness={0.9} roughness={0.1} />
-         {/* Inner Lens */}
-         <mesh position={[0, 0.1, 0]}>
-            <cylinderGeometry args={[0.2, 0.2, 0.05, 16]} rotation={[0, 0, 0]} />
-            <meshStandardMaterial color="#38bdf8" metalness={1} roughness={0} />
-         </mesh>
-      </mesh>
+       {/* ERRORS IMPLEMENTATION */}
+       
+       {/* 1. ERR-23: Unfilleted Window Edge (The top arch of the frame) */}
+       <mesh 
+         position={[0, 0, 0.35]} 
+         castShadow
+         onPointerOver={(e) => { if (isEdgeInvalid) { e.stopPropagation(); setHoveredIssueId('ERR-23'); } }}
+         onPointerOut={() => { if (isEdgeInvalid) setHoveredIssueId(null); }}
+       >
+         <extrudeGeometry args={[windowFrameShape, { ...extrudeSettingsThin, depth: isEdgeInvalid ? 0.3 : 0.2 }]} />
+         <meshStandardMaterial 
+            color={getMaterialColor(!isEdgeInvalid, 'door-edge-err') || "#020617"} 
+            transparent={true} 
+            opacity={isEdgeInvalid ? 0.8 : 0} 
+            depthWrite={!isEdgeInvalid}
+         />
+         {hoveredIssueId === 'ERR-23' && (
+           <Html position={[0, 8.5, 0.5]} distanceFactor={20} center>
+              <div className="bg-rose-600 backdrop-blur text-white text-[12px] font-bold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-rose-300 transform scale-110">
+                 <AlertCircle className="w-4 h-4 inline-block mr-1" /> Sharp Window Edge
+              </div>
+           </Html>
+         )}
+       </mesh>
 
-      {/* Charging Port Cutout / Misalignment Error */}
-      <mesh 
-        position={[isCutoutInvalid ? -1.0 : 0, -7.1, 0]} 
-        castShadow
-        onPointerOver={(e) => { if (isCutoutInvalid) { e.stopPropagation(); setHoveredIssueId('ERR-12'); } }}
-        onPointerOut={() => { if (isCutoutInvalid) setHoveredIssueId(null); }}
-      >
-        <boxGeometry args={[1.5, 0.3, 0.25]} />
-        <meshStandardMaterial color={getMaterialColor(!isCutoutInvalid, 'phone-cutout-err')} metalness={0.4} roughness={0.7} transparent opacity={0.9} wireframe={isCutoutInvalid} />
-        {hoveredIssueId === 'ERR-12' && (
-          <Html position={[0, -1, 1]} distanceFactor={15} center zIndexRange={[100, 0]}>
-             <div className="bg-rose-600 backdrop-blur text-white text-[12px] font-bold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-rose-300">
-                <AlertCircle className="w-4 h-4 inline-block mr-1" /> Misaligned Port Axis
-             </div>
-          </Html>
-        )}
-      </mesh>
-
-      {/* Edge Bumper / Sharp Corner Error */}
-      <mesh 
-        position={[3.55, -5.5, 0]} 
-        castShadow receiveShadow
-        onPointerOver={(e) => { if (isEdgeInvalid) { e.stopPropagation(); setHoveredIssueId('ERR-13'); } }}
-        onPointerOut={() => { if (isEdgeInvalid) setHoveredIssueId(null); }}
-      >
-        <boxGeometry args={[0.3, 1.8, 0.55]} />
-        <meshStandardMaterial color={getMaterialColor(!isEdgeInvalid, 'phone-edge-err')} metalness={0.7} roughness={0.2} transparent opacity={isEdgeInvalid ? 0.9 : 1} />
-        {hoveredIssueId === 'ERR-13' && (
-          <Html position={[1, 1, 1]} distanceFactor={15} center zIndexRange={[100, 0]}>
-             <div className="bg-rose-600 backdrop-blur text-white text-[12px] font-bold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-rose-300">
-                <AlertCircle className="w-4 h-4 inline-block mr-1" /> Dangerous Sharp Edge
-             </div>
-          </Html>
-        )}
-      </mesh>
+       {/* 2. ERR-22: Thin Rib (Exposed under a missing speaker cover or side panel) */}
+       <mesh position={[6.6, -1, 0.5]} castShadow>
+           <boxGeometry args={[0.4, 4, 0.8]} />
+           <meshStandardMaterial color="#94a3b8" metalness={0.6} roughness={0.4} />
+       </mesh>
+       <mesh 
+         position={[6.5, -1, 0.5]} 
+         castShadow
+         onPointerOver={(e) => { if (isRibInvalid) { e.stopPropagation(); setHoveredIssueId('ERR-22'); } }}
+         onPointerOut={() => { if (isRibInvalid) setHoveredIssueId(null); }}
+       >
+         <boxGeometry args={[isRibInvalid ? 0.05 : 0.3, 3, 0.6]} />
+         <meshStandardMaterial color={getMaterialColor(!isRibInvalid, 'door-rib-err') || "#64748b"} />
+         {hoveredIssueId === 'ERR-22' && (
+           <Html position={[1, 0, 0]} distanceFactor={20} center>
+              <div className="bg-rose-600 backdrop-blur text-white text-[12px] font-bold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-rose-300 transform scale-110">
+                 <AlertCircle className="w-4 h-4 inline-block mr-1" /> Very Thin Rib (0.05mm)
+              </div>
+           </Html>
+         )}
+       </mesh>
+       
+       {/* 3. ERR-21: Missing Hinge Hole (Front Edge) */}
+       <group position={[-6.8, -1, 0.5]}>
+          <mesh castShadow>
+             <boxGeometry args={[0.4, 3, 0.8]} />
+             <meshStandardMaterial color="#cbd5e1" metalness={0.8} roughness={0.3} />
+          </mesh>
+          <mesh position={[0, 1, 0]} rotation={[Math.PI / 2, 0, Math.PI / 2]} castShadow>
+             <cylinderGeometry args={[0.15, 0.15, 0.45, 16]} />
+             <meshStandardMaterial color="#020617" />
+          </mesh>
+          <mesh 
+            position={[0, -1, 0]} 
+            rotation={[Math.PI / 2, 0, Math.PI / 2]}
+            castShadow
+            onPointerOver={(e) => { if (isHingeInvalid) { e.stopPropagation(); setHoveredIssueId('ERR-21'); } }}
+            onPointerOut={() => { if (isHingeInvalid) setHoveredIssueId(null); }}
+          >
+            <cylinderGeometry args={[0.15, 0.15, 0.5, 16]} />
+            {isHingeInvalid ? (
+                <meshStandardMaterial color={getMaterialColor(!isHingeInvalid, 'door-hinge-err')} transparent opacity={0.6} wireframe />
+            ) : (
+                <meshStandardMaterial color="#020617" />
+            )}
+            {hoveredIssueId === 'ERR-21' && (
+              <Html position={[-1, 0, 0]} distanceFactor={20} center>
+                 <div className="bg-rose-600 backdrop-blur text-white text-[12px] font-bold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-rose-300 transform scale-110">
+                    <AlertCircle className="w-4 h-4 inline-block mr-1" /> Missing Mounting Hole
+                 </div>
+              </Html>
+            )}
+          </mesh>
+       </group>
     </group>
   );
 };
@@ -368,17 +472,18 @@ export default function CADViewer() {
                 </div>
 
                 {/* 3D Canvas rendering a single combined model */}
-                <Canvas shadows dpr={[1, 2]} camera={{ position: [18, 18, 18], fov: 35 }}>
-                  <ambientLight intensity={0.6} />
-                  <directionalLight position={[10, 15, 10]} intensity={1.8} castShadow shadow-bias={-0.0001} />
+                <Canvas shadows dpr={[1, 2]} camera={{ position: [20, 20, 25], fov: 35 }}>
+                  <ambientLight intensity={0.8} color="#ffffff" />
+                  <directionalLight position={[10, 20, 15]} intensity={1.5} castShadow shadow-bias={-0.0001} />
+                  <directionalLight position={[-10, -10, -10]} intensity={0.5} color="#cbd5e1" />
                   <Suspense fallback={null}>
-                    <Stage environment="apartment" intensity={0.4} adjustCamera={false}>
-                      {project.name === 'Smartphone Chassis' ? (
-                        <SmartphoneModel issues={issues} />
+                    <Center>
+                      {project.name === 'Car Door Panel' ? (
+                        <CarDoorModel issues={issues} />
                       ) : (
                         <SingleComplexModel issues={issues} />
                       )}
-                    </Stage>
+                    </Center>
                   </Suspense>
                   <OrbitControls makeDefault enableZoom={true} enablePan={true} autoRotate={false} />
                 </Canvas>
@@ -387,10 +492,13 @@ export default function CADViewer() {
           ) : (
             <div className="w-full h-full cursor-move">
               <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 150], fov: 40 }}>
+                <ambientLight intensity={0.8} />
+                <directionalLight position={[50, 50, 50]} intensity={1.2} castShadow />
+                <directionalLight position={[-50, -50, -50]} intensity={0.5} />
                 <Suspense fallback={null}>
-                  <Stage environment="city" intensity={0.6}>
+                  <Center>
                     <STLModel url={project.cadFileUrl} />
-                  </Stage>
+                  </Center>
                 </Suspense>
                 <OrbitControls makeDefault autoRotate autoRotateSpeed={2} />
               </Canvas>

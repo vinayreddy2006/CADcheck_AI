@@ -19,14 +19,14 @@ export const ALL_ISSUES_DB = [
   { id: 'ERR-14', title: 'Surface Continuity Disruption', severity: 'Medium', type: 'Topology Rule', rule: 'G2 Continuity', confidence: '80%', fix: 'Smooth NURBS transition across face boundary.', meshId: 'none' },
   { id: 'ERR-15', title: 'Assembly Fit Tolerance', severity: 'Critical', type: 'Assembly Fit', rule: 'Clearance-Assy', confidence: '99%', fix: 'Increase gap clearance by 0.5mm for PCB mounting.', meshId: 'none' },
 
-  // Smartphone Errors Mapped Explicitly
-  { id: 'ERR-11', title: 'Uneven Thickness Constraint', severity: 'Medium', type: 'Tolerance Issue', rule: 'Thickness Variance', confidence: '96%', fix: 'Equalize material displacement on lower chassis plate.', meshId: 'phone-plate-err' },
-  { id: 'ERR-12', title: 'Misaligned I/O Cutout', severity: 'High', type: 'Hole Alignment', rule: 'Hole Alignment Guide', confidence: '92%', fix: 'Shift charging port cutout 1.25mm left on X-axis.', meshId: 'phone-cutout-err' },
-  { id: 'ERR-13', title: 'Sharp Exterior Edge', severity: 'Critical', type: 'Edge Sharpness', rule: 'Drop Protection Radius', confidence: '100%', fix: 'Apply 1mm minimal fillet radius to outer casing perimeter.', meshId: 'phone-edge-err' }
+  // Car Door Errors Mapped Explicitly
+  { id: 'ERR-21', title: 'Missing Mounting Hole', severity: 'High', type: 'Design Constraint', rule: 'Hinge Fastener Std', confidence: '98%', fix: 'Add M8 clearance hole at lower hinge region.', meshId: 'door-hinge-err', reason: 'The primary structural hinge bracket lacks the required secondary bolt hole for frame attachment.', impact: 'Vibration during operation will cause material fatigue and eventual part shear at the single attachment point.' },
+  { id: 'ERR-22', title: 'Insufficient Rib Thickness', severity: 'Critical', type: 'Structural Integrity', rule: 'Min Wall Thickness', confidence: '99%', fix: 'Increase structural rib thickness to at least 2.5mm.', meshId: 'door-rib-err', reason: 'The central reinforcement rib wall thickness is below the 1.5mm load standard.', impact: 'The panel is highly susceptible to impact fracture from external side-loads during operation.' },
+  { id: 'ERR-23', title: 'Unfilleted Window Edge', severity: 'Medium', type: 'Manufacturing', rule: 'ISO-13715', confidence: '95%', fix: 'Apply 2mm minimal radius to upper window track edge.', meshId: 'door-edge-err', reason: 'The sliding window track extrusion has a perfectly sharp 90-degree corner geometry.', impact: 'Creates a stress concentration point and increases risk of operator injury during manual assembly.' }
 ];
 
 const FLANGE_ISSUES = [ALL_ISSUES_DB[0], ALL_ISSUES_DB[1], ALL_ISSUES_DB[2], ALL_ISSUES_DB[4], ALL_ISSUES_DB[6]];
-const SMARTPHONE_ISSUES = [ALL_ISSUES_DB[12], ALL_ISSUES_DB[13], ALL_ISSUES_DB[14], ALL_ISSUES_DB[11]];
+const CAR_DOOR_ISSUES = [ALL_ISSUES_DB.find(i => i.id === 'ERR-22'), ALL_ISSUES_DB.find(i => i.id === 'ERR-21'), ALL_ISSUES_DB.find(i => i.id === 'ERR-23')];
 
 const DEMO_PROJECT_1 = {
   _id: 'static-demo-001',
@@ -40,7 +40,7 @@ const DEMO_PROJECT_1 = {
 
 const DEMO_PROJECT_2 = {
   _id: 'static-demo-002',
-  name: 'Smartphone Chassis',
+  name: 'Car Door Panel',
   status: 'pending',
   cadFileUrl: 'DEMO_MODE',
   validationScore: '0%',
@@ -148,7 +148,7 @@ export const useAppStore = create((set, get) => ({
       await new Promise(r => setTimeout(r, 2000));
 
       // Slice the errors to exactly top 3 based on Severity!
-      const targetIssues = activeProjectId === DEMO_PROJECT_1._id ? FLANGE_ISSUES : SMARTPHONE_ISSUES;
+      const targetIssues = activeProjectId === DEMO_PROJECT_1._id ? FLANGE_ISSUES : CAR_DOOR_ISSUES;
       const sortedTrimmedIssues = targetIssues.sort((a, b) => {
         const ranks = { 'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
         return ranks[a.severity] - ranks[b.severity];
