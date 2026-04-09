@@ -5,7 +5,9 @@ const generateToken = (res, userId) => {
     expiresIn: '30d',
   });
 
-  const isProd = process.env.NODE_ENV === 'production';
+  // Render sets the 'RENDER' environment variable to 'true' automatically.
+  // This ensures cookies have sameSite: 'none' and secure: true in deployed environments
+  const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
   
   res.cookie('jwt', token, {
     httpOnly: true,

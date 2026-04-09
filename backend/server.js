@@ -22,8 +22,15 @@ const app = express();
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' })); // Safely allows frontend to load /uploads
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "https://cadcheck-ai-frontend.onrender.com",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: "https://cadcheck-ai-frontend.onrender.com",
+  origin: allowedOrigins,
   credentials: true
 }));
 
