@@ -21,12 +21,7 @@ const app = express();
 // Global Middleware
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' })); // Safely allows frontend to load /uploads
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://cadcheck-ai-frontend.onrender.com'] 
-    : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174'],
-  credentials: true,
-}));
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
