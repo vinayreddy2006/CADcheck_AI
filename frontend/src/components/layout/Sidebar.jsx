@@ -46,17 +46,7 @@ export default function Sidebar() {
         ))}
       </nav>
       
-      <div className="p-6 border-t border-slate-200/50 mt-auto">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
-            VR
-          </div>
-          <div className="text-xs">
-            <p className="font-semibold text-slate-800">Vinay Reddy</p>
-            <p className="text-slate-500">Lead Engineer</p>
-          </div>
-        </div>
-      </div>
+
     </aside>
   );
 }
