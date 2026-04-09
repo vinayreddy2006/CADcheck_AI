@@ -8,7 +8,9 @@ import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
 
 // Component for Real uploaded STL files
 const STLModel = ({ url }) => {
-  const fullUrl = `http://localhost:5000${url}`;
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const baseUrl = apiUrl.replace(/\/api$/, '');
+  const fullUrl = `${baseUrl}${url}`;
   const geom = useLoader(STLLoader, fullUrl);
   return (
     <mesh geometry={geom} castShadow receiveShadow>
