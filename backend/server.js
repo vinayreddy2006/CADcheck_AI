@@ -25,6 +25,7 @@ app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' })); // Safely
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
+  "http://localhost:5174",
   "https://cadcheck-ai-frontend.onrender.com",
   process.env.FRONTEND_URL
 ].filter(Boolean);

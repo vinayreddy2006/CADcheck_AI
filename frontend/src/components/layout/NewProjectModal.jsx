@@ -63,7 +63,7 @@ export default function NewProjectModal({ isOpen, onClose }) {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">CAD File (.STEP, .STL, .IGES)</label>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1">CAD File ( .STL)</label>
                         <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-lg hover:bg-slate-50 transition-colors">
                             <div className="space-y-1 text-center">
                                 <Upload className="mx-auto h-8 w-8 text-slate-400" />

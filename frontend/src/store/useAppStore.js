@@ -184,6 +184,22 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
+  deleteProject: async (id) => {
+    try {
+      await api.delete(`/projects/${id}`);
+      const { activeProjectId } = get();
+      set((state) => ({
+        projects: state.projects.filter((p) => p._id !== id),
+        // If the deleted project was active, fall back to the first demo project
+        activeProjectId: activeProjectId === id ? DEMO_PROJECT_1._id : activeProjectId,
+      }));
+      return true;
+    } catch (error) {
+      console.error('Delete failed:', error);
+      throw error;
+    }
+  },
+
   startSimulation: async () => {
     const { activeProjectId } = get();
     if (!activeProjectId) return;
