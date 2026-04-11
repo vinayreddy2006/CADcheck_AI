@@ -26,7 +26,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="h-16 border-b border-slate-200/50 bg-white/40 backdrop-blur-md flex items-center justify-between px-8 z-10 sticky top-0">
+      <header className="h-16 border-b border-slate-200/60 bg-white/60 backdrop-blur-xl flex items-center justify-between px-8 z-10 sticky top-0 shadow-sm shadow-slate-100/50">
         <div className="flex items-center gap-4">
           <div className="relative group">
             <button className="flex items-center gap-3 px-5 py-2.5 bg-white shadow-sm border border-slate-200 hover:border-blue-400 hover:ring-4 hover:ring-blue-50/50 rounded-xl text-base font-bold text-slate-800 transition-all min-w-[240px] justify-between">
@@ -64,8 +64,8 @@ export default function Navbar() {
           ) : pipelineState === 'idle' || pipelineState === 'complete' ? (
             <button
               onClick={startSimulation}
-              disabled={!activeProjectId} // Removed the demo block so anyone can click it
-              className="px-4 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 text-white rounded-md text-sm font-medium shadow-sm transition-all flex items-center gap-2"
+              disabled={!activeProjectId}
+              className="px-5 py-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:via-indigo-700 hover:to-blue-800 disabled:opacity-50 text-white rounded-lg text-sm font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-300 flex items-center gap-2 hover:-translate-y-px tracking-tight"
             >
               <span className="w-2 h-2 rounded-full bg-blue-200 animate-pulse"></span>
               Run AI Validation

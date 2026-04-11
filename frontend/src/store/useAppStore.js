@@ -1,31 +1,89 @@
 import { create } from 'zustand';
 import api from '../lib/axios';
 
-// Expand rules list for comprehensive simulation mapping (15 Rules)
+// ─────────────────────────────────────────────────────────────────────────────
+// Static Issue Database — Professionally worded with precise physical locations
+// ─────────────────────────────────────────────────────────────────────────────
 export const ALL_ISSUES_DB = [
-  // Flange Issues
-  { id: 'ERR-01', title: 'Insufficient Wall Thickness', severity: 'Critical', type: 'Design Constraint', rule: 'DFM-Cast-04', confidence: '99%', fix: 'Increase rib thickness to ≥ 2.5mm.', meshId: 'rib-3' },
-  { id: 'ERR-02', title: 'Overlapping Bodies', severity: 'High', type: 'Topology Rule', rule: 'B-Rep-03', confidence: '100%', fix: 'Resolve intersecting geometry at flange neck.', meshId: 'rib-4' },
-  { id: 'ERR-03', title: 'Missing Fastener Hole', severity: 'High', type: 'Geometry Error', rule: 'Assy-M6-Spacing', confidence: '88%', fix: 'Restore symmetric hole pattern at 45 degrees.', meshId: 'hole-miss-2' },
-  { id: 'ERR-04', title: 'Missing Fastener Hole', severity: 'High', type: 'Geometry Error', rule: 'Assy-M6-Spacing', confidence: '88%', fix: 'Restore symmetric hole pattern at 135 degrees.', meshId: 'hole-miss-5' },
-  { id: 'ERR-05', title: 'Unfilleted Sharp Edge', severity: 'Medium', type: 'Manufacturing', rule: 'ISO-13715', confidence: '94%', fix: 'Apply 2mm minimal radius to edge strip.', meshId: 'extrusion-err' },
-  
-  // Extra Rule DB additions (Generic)
-  { id: 'ERR-06', title: 'Non-Manifold Vertex', severity: 'High', type: 'Topology Rule', rule: 'B-Rep-Val-09', confidence: '91%', fix: 'Merge detached vertices affecting volume enclosure.', meshId: 'none' },
-  { id: 'ERR-07', title: 'Surface Gap Detected', severity: 'Critical', type: 'Geometry Error', rule: 'ISO-10303-T-02', confidence: '97%', fix: 'Stitch surfaces S-44 and S-45.', meshId: 'none' },
-  { id: 'ERR-08', title: 'Draft Angle Extraction', severity: 'Medium', type: 'Design Constraint', rule: 'DFM-Molding', confidence: '82%', fix: 'Apply 1.5° outward draft to internal bore.', meshId: 'none' },
-  { id: 'ERR-09', title: 'Component Proximity Violation', severity: 'Low', type: 'Assembly Fit', rule: 'Clearance-X1', confidence: '79%', fix: 'Move bolting boss 1mm from inner wall.', meshId: 'none' },
-  { id: 'ERR-10', title: 'Self-Intersecting Face', severity: 'Critical', type: 'Topology Rule', rule: 'B-Rep-07', confidence: '100%', fix: 'Re-loft surface to remove self-intersection loop.', meshId: 'none' },
-  { id: 'ERR-14', title: 'Surface Continuity Disruption', severity: 'Medium', type: 'Topology Rule', rule: 'G2 Continuity', confidence: '80%', fix: 'Smooth NURBS transition across face boundary.', meshId: 'none' },
-  { id: 'ERR-15', title: 'Assembly Fit Tolerance', severity: 'Critical', type: 'Assembly Fit', rule: 'Clearance-Assy', confidence: '99%', fix: 'Increase gap clearance by 0.5mm for PCB mounting.', meshId: 'none' },
 
-  // Car Door Errors Mapped Explicitly
-  { id: 'ERR-21', title: 'Missing Mounting Hole', severity: 'High', type: 'Design Constraint', rule: 'Hinge Fastener Std', confidence: '98%', fix: 'Add M8 clearance hole at lower hinge region.', meshId: 'door-hinge-err', reason: 'The primary structural hinge bracket lacks the required secondary bolt hole for frame attachment.', impact: 'Vibration during operation will cause material fatigue and eventual part shear at the single attachment point.' },
-  { id: 'ERR-22', title: 'Insufficient Rib Thickness', severity: 'Critical', type: 'Structural Integrity', rule: 'Min Wall Thickness', confidence: '99%', fix: 'Increase structural rib thickness to at least 2.5mm.', meshId: 'door-rib-err', reason: 'The central reinforcement rib wall thickness is below the 1.5mm load standard.', impact: 'The panel is highly susceptible to impact fracture from external side-loads during operation.' },
-  { id: 'ERR-23', title: 'Unfilleted Window Edge', severity: 'Medium', type: 'Manufacturing', rule: 'ISO-13715', confidence: '95%', fix: 'Apply 2mm minimal radius to upper window track edge.', meshId: 'door-edge-err', reason: 'The sliding window track extrusion has a perfectly sharp 90-degree corner geometry.', impact: 'Creates a stress concentration point and increases risk of operator injury during manual assembly.' }
+  // ── Industrial Flange Issues ──────────────────────────────────────────────
+  {
+    id: 'ERR-01',
+    title: 'Sub-Critical Wall Thickness Along Outer Perimeter Rib Array',
+    severity: 'Critical',
+    type: 'Design Constraint',
+    rule: 'DFM-Cast-04',
+    confidence: '99%',
+    meshId: 'rib-3',
+    fix: 'Increase the wall thickness of the three radial ribs along the outer perimeter of the upper mounting flange from the current 1.1 mm to a minimum of 2.5 mm to satisfy DFM-Cast-04 casting fill requirements.',
+    reason: 'The B-Rep analysis detected that the three equidistant radial stiffening ribs — located at the outer perimeter of the upper mounting flange, between bolt bosses B2 and B4 — exhibit a nominal wall thickness of 1.1 mm. This is 56% below the 2.5 mm minimum mandated by DFM-Cast-04 for gravity die-cast aluminium alloys.',
+    impact: 'During the high-pressure die-casting process, molten alloy flowing into thin-walled cavities loses thermal energy faster than feed metal can replenish it. This causes premature solidification and incomplete fill (misrun) in the rib cavity, resulting in cold shuts and sub-surface porosity. Under cyclic torque loading from the bolted joint, these microporous regions will initiate fatigue cracks that propagate through the rib cross-section, ultimately causing catastrophic fracture of the flange body.'
+  },
+  {
+    id: 'ERR-02',
+    title: 'Non-Manifold B-Rep Intersection at Neck-to-Barrel Transition Zone',
+    severity: 'High',
+    type: 'Topology Rule',
+    rule: 'B-Rep-03',
+    confidence: '100%',
+    meshId: 'rib-4',
+    fix: 'Perform a Boolean subtraction to resolve the co-incident face overlap between solid body S-12 (neck boss) and S-07 (barrel body) at the neck-to-barrel transition, then re-stitch the resulting open shell edges to restore a fully-closed, two-manifold B-Rep topology.',
+    reason: 'Two solid bodies — the neck boss (S-12) and the primary barrel body (S-07) — share a co-incident set of faces at the concave neck-to-barrel transition zone, located 14 mm below the upper flange face. The overlapping faces create a non-manifold condition: a single edge is shared by more than two faces, violating the two-manifold closure invariant required by ISO 10303-42.',
+    impact: 'A non-manifold body cannot be processed by downstream CAM systems for CNC toolpath generation, nor by FEA solvers for structural simulation, as the open-shell boundary produces undefined inside/outside volume assignments. Any attempt to manufacture from this geometry will result in tool gouging artefacts or an aborted machining cycle.'
+  },
+  {
+    id: 'ERR-03',
+    title: 'Asymmetric M6 Clearance Hole Omission at 135° Bolt Pattern Locus',
+    severity: 'High',
+    type: 'Geometry Error',
+    rule: 'Assy-M6-Spacing',
+    confidence: '88%',
+    meshId: 'hole-miss-5',
+    fix: 'Instantiate an M6 clearance hole (⌀6.4 mm through-bore) at the 135° angular position on the 72 mm Pitch Circle Diameter of the upper mounting flange to restore the required four-bolt symmetric pattern per assembly drawing AD-FLG-007.',
+    reason: 'The upper mounting flange defines a four-way symmetric M6 bolt pattern on a 72 mm PCD. The GDL graph traversal identified that the hole instance at the 135° angular position is absent from the B-Rep face set, while the complementary holes at 45°, 225°, and 315° are correctly formed, breaking the required four-fold rotational symmetry.',
+    impact: 'This asymmetry concentrates the preload force on the three remaining bolts by 33%, exceeding their rated preload and inducing fretting fatigue at the bolt-seat interface. Under vibration loading, the unbalanced joint will progressively loosen, ultimately allowing the flange to separate from its mating component.'
+  },
+
+  // ── Car Door Panel Issues ─────────────────────────────────────────────────
+  {
+    id: 'ERR-21',
+    title: 'Absent Secondary M8 Clearance Bore at Lower Hinge Bracket Attachment Interface',
+    severity: 'High',
+    type: 'Design Constraint',
+    rule: 'Hinge-Fastener-Std-OEM-07',
+    confidence: '98%',
+    meshId: 'door-hinge-err',
+    fix: 'Instantiate an M8 clearance bore (⌀8.4 mm, 16 mm deep) at the secondary fastener locus on the lower hinge bracket attachment interface, located 38 mm inboard of the outer door skin flange and 22 mm above the rocker panel datum, per OEM hinge drawing HNG-D-2284.',
+    reason: 'The lower hinge bracket attachment interface — located at the vehicle body pillar junction, 38 mm inboard of the outer door skin flange and 22 mm above the rocker panel datum — specifies a two-bolt M8 fastening pattern per OEM structural drawing HNG-D-2284. The B-Rep face traversal confirmed that only the primary clearance bore is instantiated; the secondary fastener bore at the prescribed locus is absent from the solid body.',
+    impact: 'A single-bolt hinge attachment reduces joint stiffness by approximately 65% compared to the design intent twin-bolt configuration. During dynamic door-open events, the cantilevered door mass generates a bending moment at the single bolt, inducing plastic deformation of the bracket stamping. Door sag will exceed the OEM door-gap tolerance (±1.5 mm) within fewer than 10,000 open/close cycles, constituting a warranty failure.'
+  },
+  {
+    id: 'ERR-22',
+    title: 'Unmitigated Sub-Minimum Wall Thickness on Central Longitudinal Reinforcement Rib',
+    severity: 'Critical',
+    type: 'Structural Integrity',
+    rule: 'OEM-Min-Wall-Std-AL-02',
+    confidence: '99%',
+    meshId: 'door-rib-err',
+    fix: 'Increase the nominal wall thickness of the central longitudinal reinforcement rib — spanning the full 920 mm vertical extent of the inner door panel along its neutral axis — from the current 1.2 mm to a minimum of 2.5 mm, as mandated by OEM-Min-Wall-Std-AL-02 for aluminium inner panel stampings subject to side-impact loading.',
+    reason: 'The central longitudinal reinforcement rib — a continuous stamped feature spanning the full 920 mm vertical extent of the inner door panel along its neutral bending axis — measures a nominal wall thickness of only 1.2 mm. OEM-Min-Wall-Std-AL-02 mandates a minimum of 2.5 mm for inner panel ribs classified as primary lateral load paths in aluminium door structures. The current thickness is 52% deficient.',
+    impact: 'Under a FMVSS 214 pole side-impact test scenario, the central rib constitutes the primary barrier against door inner panel intrusion into the occupant compartment. At 1.2 mm, the rib cross-section cannot sustain the plastic bending moment required to absorb mandated impact energy before exceeding the intrusion limit, constituting a critical safety non-conformance that will fail regulatory certification.'
+  },
+  {
+    id: 'ERR-23',
+    title: 'Zero-Blend-Radius Dihedral Edge at Upper Window Track Extrusion Terminus',
+    severity: 'Medium',
+    type: 'Manufacturing',
+    rule: 'ISO-13715',
+    confidence: '95%',
+    meshId: 'door-edge-err',
+    fix: 'Apply a 2.0 mm minimum convex blend radius to the 90° dihedral edge at the terminus of the upper window track extrusion, located along the inner face of the door at the intersection of the window aperture surround and the primary door frame flange, per ISO 13715 sharp-edge mitigation specifications.',
+    reason: 'The extruded upper window track — located along the inner face of the door at the intersection of the window aperture surround and the primary door frame flange — terminates with a geometrically exact 90° dihedral angle (r = 0.00 mm). ISO 13715 mandates a minimum 2.0 mm convex blend radius for all accessible re-entrant edges on aluminium stampings to prevent operator laceration injury during trim-line assembly.',
+    impact: 'A zero-radius re-entrant edge is classified as a Severity 1 ergonomic hazard under ISO 11228-3 and will cause automatic rejection at the OEM process audit. Additionally, the unmitigated stress concentration (Kt ≈ 3.8 for Al-6061-T6 under fatigue loading) will initiate a fatigue crack at the track terminus under cyclic door-deflection loading, propagating toward the window aperture surround flange within the component\'s scheduled service life.'
+  }
 ];
 
-const FLANGE_ISSUES = [ALL_ISSUES_DB[0], ALL_ISSUES_DB[1], ALL_ISSUES_DB[2], ALL_ISSUES_DB[4], ALL_ISSUES_DB[6]];
+const FLANGE_ISSUES = [ALL_ISSUES_DB[0], ALL_ISSUES_DB[1], ALL_ISSUES_DB[2]];
 const CAR_DOOR_ISSUES = [ALL_ISSUES_DB.find(i => i.id === 'ERR-22'), ALL_ISSUES_DB.find(i => i.id === 'ERR-21'), ALL_ISSUES_DB.find(i => i.id === 'ERR-23')];
 
 const DEMO_PROJECT_1 = {

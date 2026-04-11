@@ -33,11 +33,13 @@ export default function Auth() {
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 rounded-full bg-green-100/50 blur-3xl" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center mb-8">
-        <ShieldCheck className="mx-auto h-12 w-12 text-blue-600" />
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-green-600">
-          CoreAI CAD
+        <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-indigo-500/30 mb-4">
+          <ShieldCheck className="h-7 w-7 text-white" />
+        </div>
+        <h2 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600">
+          Aegis CAD
         </h2>
-        <p className="mt-2 text-center text-sm text-slate-600">
+        <p className="mt-2 text-center text-sm text-slate-500 font-medium tracking-wide">
           Enterprise Geometry Validation Infrastructure
         </p>
       </div>
