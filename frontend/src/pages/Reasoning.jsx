@@ -9,6 +9,13 @@ export default function Reasoning() {
   const issues = project?.issues || [];
   const isCompleted = project?.status === 'completed';
 
+  // Determine Pass/Fail Colors and Text
+  const hasIssues = issues.length > 0;
+  const complianceStatus = !isCompleted ? '---' : (hasIssues ? 'FAIL' : 'PASS');
+  const panelGradient = isCompleted
+    ? (hasIssues ? 'from-rose-600 to-red-700 shadow-rose-600/20' : 'from-emerald-500 to-teal-600 shadow-emerald-600/20')
+    : 'from-slate-600 to-slate-700 shadow-slate-600/20';
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 h-[calc(100vh-8rem)]">
       <div className="flex justify-between items-end">
@@ -29,98 +36,102 @@ export default function Reasoning() {
               <BrainCircuit className="w-4 h-4 text-indigo-600" /> Structural Analysis Findings
             </h3>
             {isCompleted && (
-               <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded">Validation Complete</span>
+              <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded">Validation Complete</span>
             )}
           </div>
-          
+
           <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
             {!isCompleted ? (
-               <div className="bg-[#0f172a] p-6 rounded-xl font-mono text-sm h-full text-emerald-400 overflow-y-auto flex flex-col gap-2">
-                 {logs.length === 0 && <span className="text-slate-500">Awaiting execution trace...</span>}
-                 {logs.map((log, i) => (
-                   <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={i}>
-                     <span className="text-blue-400">core&gt;</span> <span className="text-slate-300">{log}</span>
-                   </motion.div>
-                 ))}
-               </div>
-            ) : issues.length === 0 ? (
-               <div className="flex flex-col items-center justify-center h-full text-slate-500">
-                  <CheckCircle2 className="w-16 h-16 text-emerald-400 mb-4" />
-                  <p className="font-bold text-lg">No Issues Detected</p>
-               </div>
+              <div className="bg-[#0f172a] p-6 rounded-xl font-mono text-sm h-full text-emerald-400 overflow-y-auto flex flex-col gap-2">
+                {logs.length === 0 && <span className="text-slate-500">Awaiting execution trace...</span>}
+                {logs.map((log, i) => (
+                  <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={i}>
+                    <span className="text-blue-400">core&gt;</span> <span className="text-slate-300">{log}</span>
+                  </motion.div>
+                ))}
+              </div>
+            ) : !hasIssues ? (
+              <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                <CheckCircle2 className="w-16 h-16 text-emerald-400 mb-4" />
+                <p className="font-bold text-lg">No Issues Detected</p>
+              </div>
             ) : (
-               <div className="flex flex-col gap-6">
-                 {issues.map((issue, idx) => (
-                    <motion.div 
-                      key={issue.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      onMouseEnter={() => setHoveredIssueId(issue.id)}
-                      onMouseLeave={() => setHoveredIssueId(null)}
-                      className={`flex flex-col rounded-xl border-2 transition-all p-5 shadow-sm bg-white ${hoveredIssueId === issue.id ? 'border-indigo-400 shadow-indigo-100/50 scale-[1.01] z-10 relative' : 'border-slate-100'}`}
-                    >
-                      {/* Header */}
-                      <div className="flex justify-between items-start mb-4">
-                         <div className="flex items-center gap-3">
-                           <div className={`p-2 rounded-lg ${issue.severity === 'Critical' ? 'bg-rose-100 text-rose-600' : issue.severity === 'High' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
-                             <AlertCircle className="w-5 h-5" />
-                           </div>
-                           <div>
-                             <h4 className="font-bold text-lg text-slate-800 leading-tight">{issue.title}</h4>
-                             <p className="text-xs font-mono text-slate-500 mt-1">Rule: {issue.rule}</p>
-                           </div>
-                         </div>
-                         <div className="text-right">
-                           <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-full mb-1">
-                             Confidence: {issue.confidence}
-                           </span>
-                         </div>
-                      </div>
-
-                      {/* Detailed Breakdown */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                        {/* Why this is an issue */}
-                        <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl">
-                          <h5 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                            <Info className="w-4 h-4 text-blue-500" /> Origin Reason
-                          </h5>
-                          <p className="text-sm text-slate-600">{issue.reason || 'Geometry violates basic topology constraints.'}</p>
+              <div className="flex flex-col gap-6">
+                {issues.map((issue, idx) => (
+                  <motion.div
+                    key={issue.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    onMouseEnter={() => setHoveredIssueId(issue.id)}
+                    onMouseLeave={() => setHoveredIssueId(null)}
+                    className={`flex flex-col rounded-xl border-2 transition-all p-5 shadow-sm bg-white ${hoveredIssueId === issue.id ? 'border-indigo-400 shadow-indigo-100/50 scale-[1.01] z-10 relative' : 'border-slate-100'}`}
+                  >
+                    {/* Header */}
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${issue.severity === 'Critical' ? 'bg-rose-100 text-rose-600' : issue.severity === 'High' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
+                          <AlertCircle className="w-5 h-5" />
                         </div>
-                        
-                        {/* Manufacturing Impact */}
-                        <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl">
-                          <h5 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-800 mb-2">
-                            <Network className="w-4 h-4 text-rose-500" /> Manufacturing Impact
-                          </h5>
-                          <p className="text-sm text-rose-700">{issue.impact || 'General structural failure risk increased.'}</p>
+                        <div>
+                          <h4 className="font-bold text-lg text-slate-800 leading-tight">{issue.title}</h4>
+                          <p className="text-xs font-mono text-slate-500 mt-1">Rule: {issue.rule}</p>
                         </div>
                       </div>
-
-                      {/* Suggested Fix */}
-                      <div className="mt-4 bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-start gap-3">
-                         <div className="p-1.5 bg-indigo-100 text-indigo-600 rounded-md shrink-0"><Wrench className="w-4 h-4" /></div>
-                         <div>
-                            <h5 className="text-xs font-bold uppercase tracking-wider text-indigo-900 mb-1">Suggested Mitigation</h5>
-                            <p className="text-sm text-indigo-800 font-medium flex items-center gap-2">
-                              {issue.fix}
-                            </p>
-                         </div>
+                      <div className="text-right">
+                        <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-full mb-1">
+                          Confidence: {issue.confidence}
+                        </span>
                       </div>
-                    </motion.div>
-                 ))}
-               </div>
+                    </div>
+
+                    {/* Detailed Breakdown */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                      {/* Why this is an issue */}
+                      <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                        <h5 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                          <Info className="w-4 h-4 text-blue-500" /> Origin Reason
+                        </h5>
+                        <p className="text-sm text-slate-600">{issue.reason || 'Geometry violates basic topology constraints.'}</p>
+                      </div>
+
+                      {/* Manufacturing Impact */}
+                      <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl">
+                        <h5 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-800 mb-2">
+                          <Network className="w-4 h-4 text-rose-500" /> Manufacturing Impact
+                        </h5>
+                        <p className="text-sm text-rose-700">{issue.impact || 'General structural failure risk increased.'}</p>
+                      </div>
+                    </div>
+
+                    {/* Suggested Fix */}
+                    <div className="mt-4 bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-start gap-3">
+                      <div className="p-1.5 bg-indigo-100 text-indigo-600 rounded-md shrink-0"><Wrench className="w-4 h-4" /></div>
+                      <div>
+                        <h5 className="text-xs font-bold uppercase tracking-wider text-indigo-900 mb-1">Suggested Mitigation</h5>
+                        <p className="text-sm text-indigo-800 font-medium flex items-center gap-2">
+                          {issue.fix}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             )}
           </div>
         </div>
 
         {/* Right Side: Stats Panel */}
         <div className="flex flex-col gap-6">
-          <div className="glass-panel p-6 text-center flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-indigo-600 to-blue-700 text-white border-0 shadow-lg shadow-indigo-600/20">
-            <h3 className="text-indigo-200 text-xs font-bold uppercase tracking-widest mb-4">Global Confidence Score</h3>
-            <div className="text-6xl font-black text-white drop-shadow-md">{project?.validationScore || '0%'}</div>
-            <p className="text-indigo-200 text-xs mt-4 max-w-[200px]">AI certainty across {project?.stats?.totalNodes || 0} evaluated nodes</p>
+          {/* REPLACED PERCENTAGE WITH BINARY COMPLIANCE BLOCK */}
+          <div className={`glass-panel p-6 text-center flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br ${panelGradient} text-white border-0 shadow-lg`}>
+            <h3 className="text-white/80 text-xs font-bold uppercase tracking-widest mb-4">Production Compliance</h3>
+            <div className="text-6xl font-black text-white drop-shadow-md tracking-tight">{complianceStatus}</div>
+            <p className="text-white/80 text-xs mt-4 max-w-[200px]">
+              {!isCompleted ? 'Awaiting AI analysis to complete.' : (hasIssues ? `${issues.length} unresolved critical/high issues block production.` : `Model meets all baseline ISO requirements.`)}
+            </p>
           </div>
+
           <div className="glass-panel p-6 flex-1">
             <h3 className="text-slate-500 text-xs font-bold uppercase mb-5">Node Classifications</h3>
             <ul className="space-y-4">
@@ -133,11 +144,11 @@ export default function Reasoning() {
                 <b className="text-rose-600 text-lg">{issues.length}</b>
               </li>
             </ul>
-            
+
             {/* Visual Indicator Hint */}
             <div className="mt-8 p-4 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-500 flex items-start gap-2">
-               <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-               <p>Hover over any issue panel to instantly highlight the affected geometry component within the 3D Viewer.</p>
+              <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+              <p>Hover over any issue panel to instantly highlight the affected geometry component within the 3D Viewer.</p>
             </div>
           </div>
         </div>

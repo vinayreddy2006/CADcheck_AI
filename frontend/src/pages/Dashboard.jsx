@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import {
   Activity, AlertTriangle, CheckCircle, Database,
-  Settings, Plus, Cuboid, Car, Layers
+  Settings, Plus, Cuboid, Car, Layers, XCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NewProjectModal from '../components/layout/NewProjectModal';
@@ -22,17 +22,8 @@ const cardVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } }
 };
 
-// Project cards data
+// Project cards data (SWAPPED ORDER: Car Door first, Flange second)
 const STATIC_PROJECTS = [
-  {
-    id: 'static-demo-001',
-    title: 'Industrial Flange',
-    description: 'Heavy engineering assembly with geometric intersection bounds and load-bearing topology.',
-    icon: Settings,
-    gradient: 'from-indigo-500 to-purple-600',
-    status: 'Analyzed',
-    statusColor: 'bg-emerald-500/90 text-white',
-  },
   {
     id: 'static-demo-002',
     title: 'Car Door Panel',
@@ -41,6 +32,15 @@ const STATIC_PROJECTS = [
     gradient: 'from-cyan-500 to-slate-600',
     status: 'Pending',
     statusColor: 'bg-amber-400/90 text-white',
+  },
+  {
+    id: 'static-demo-001',
+    title: 'Industrial Flange',
+    description: 'Heavy engineering assembly with geometric intersection bounds and load-bearing topology.',
+    icon: Settings,
+    gradient: 'from-indigo-500 to-purple-600',
+    status: 'Analyzed',
+    statusColor: 'bg-emerald-500/90 text-white',
   },
 ];
 
@@ -64,12 +64,21 @@ export default function Dashboard() {
     );
   }
 
+  // Calculate binary Pass/Fail for the dashboard KPI
+  const isCompleted = project.status === 'completed';
+  const hasIssues = project.issues?.length > 0;
+  const complianceStatus = !isCompleted ? '---' : (hasIssues ? 'FAIL' : 'PASS');
+  const complianceColor = hasIssues ? 'text-rose-600' : 'text-emerald-600';
+  const complianceBg = hasIssues ? 'bg-rose-100' : 'bg-emerald-100';
+  const ComplianceIcon = hasIssues ? XCircle : CheckCircle;
+
   // Dynamic KPIs based on the global state
   const kpis = [
     { title: 'Project Status', value: project.status, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-100', glow: 'shadow-blue-200/70 hover:shadow-blue-200' },
     { title: 'Geometry Nodes', value: project.stats?.totalNodes || 0, icon: Database, color: 'text-indigo-600', bg: 'bg-indigo-100', glow: 'shadow-indigo-200/70 hover:shadow-indigo-200' },
     { title: 'Active Violations', value: project.issues?.length || 0, icon: AlertTriangle, color: 'text-rose-600', bg: 'bg-rose-100', glow: 'shadow-rose-200/70 hover:shadow-rose-200' },
-    { title: 'Validation Score', value: project.validationScore || '0%', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-100', glow: 'shadow-emerald-200/70 hover:shadow-emerald-200' },
+    // REPLACED PERCENTAGE WITH BINARY PASS/FAIL
+    { title: 'Compliance Status', value: complianceStatus, icon: ComplianceIcon, color: complianceColor, bg: complianceBg, glow: `shadow-${hasIssues ? 'rose' : 'emerald'}-200/70 hover:shadow-${hasIssues ? 'rose' : 'emerald'}-200` },
   ];
 
   const handleSelectDemo = (id) => {
