@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import {
-  ReactFlow, Background, applyNodeChanges, applyEdgeChanges,
+  ReactFlow, Background, MiniMap, Controls, applyNodeChanges, applyEdgeChanges,
   MarkerType, useReactFlow, ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -9,7 +9,7 @@ import { useAppStore } from '../store/useAppStore';
 import { getSeverityConfig } from '../lib/severityConfig';
 import {
   Network, X, Wrench, BrainCircuit, Layers, ShieldCheck,
-  CheckCircle2, AlertTriangle, XCircle, Info, Maximize2, LocateFixed,
+  CheckCircle2, AlertTriangle, XCircle, Info, Maximize2,
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -187,6 +187,7 @@ const buildErrorStyle = (issue, isHovered, isFocused, hasFocus) => {
     opacity: dimmed ? 0.3 : 1,
     transition: 'all 0.25s ease-in-out',
     zIndex: isFocused ? 100 : 1,
+    boxShadow: isFocused ? `0 0 0 4px ${sc.shadowColorHover}` : (isHovered ? `0 4px 12px ${sc.shadowColorHover}` : 'none'),
   };
 };
 
@@ -196,7 +197,8 @@ const buildErrorStyle = (issue, isHovered, isFocused, hasFocus) => {
 function GDLGraphInner() {
   const { pipelineState, getActiveProject, hoveredIssueId, setHoveredIssueId } = useAppStore();
   const project = getActiveProject();
-  const { fitView } = useReactFlow();
+
+  const { fitView, zoomIn, zoomOut } = useReactFlow();
 
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
@@ -204,6 +206,14 @@ function GDLGraphInner() {
   const [focusedNodeId, setFocusedNodeId] = useState(null);
 
   const hasFocus = focusedNodeId !== null;
+
+  const dynamicExtent = useMemo(() => {
+    const numIssues = project?.issues?.length || 0;
+    const maxRows = Math.ceil(numIssues / 3);
+    const calculatedMaxY = numIssues > 0 ? 660 + (maxRows * 155) + 100 : 600;
+    return [[-50, -50], [1030, calculatedMaxY]];
+  }, [project?.issues?.length]);
+
 
   useEffect(() => {
     if (!project) return;
@@ -285,13 +295,29 @@ function GDLGraphInner() {
   const handleNodeMouseLeave = useCallback(() => setHoveredIssueId(null), [setHoveredIssueId]);
 
   const handleNodeClick = useCallback((event, node) => {
-    event.stopPropagation(); // VERY IMPORTANT: Stops the parent div from instantly closing the drawer
+    event.stopPropagation();
     const issue = project?.issues?.find(i => i.id === node.id);
     if (issue) {
       setFocusedNodeId(prev => prev === node.id ? null : node.id);
       setSelectedIssue(prev => prev?.id === issue.id ? null : issue);
     }
   }, [project]);
+
+  const handlePaneClick = useCallback(() => {
+    setFocusedNodeId(null);
+    setSelectedIssue(null);
+  }, []);
+
+  // ── Wheel handler: let regular scroll pass through to the page;
+  //    only intercept ctrl/meta wheel (pinch-to-zoom trackpad gesture).
+  const handleWheelCapture = useCallback((e) => {
+    if (!e.ctrlKey && !e.metaKey) {
+      // Plain scroll — do NOT stop propagation, let the page scroll
+      return;
+    }
+    // Pinch/ctrl+wheel — let ReactFlow handle zoom, stop page from zooming
+    e.stopPropagation();
+  }, []);
 
   const issues = project?.issues || [];
   const validCount = 6;
@@ -321,7 +347,7 @@ function GDLGraphInner() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.85 }}
                 onClick={() => { setFocusedNodeId(null); setSelectedIssue(null); }}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 shadow-md"
               >
                 <Maximize2 className="w-4 h-4" /> Exit Focus Mode
               </motion.button>
@@ -348,30 +374,51 @@ function GDLGraphInner() {
           </div>
         </div>
 
-        {/* ── Main Graph Container ── */}
         <div className="glass-panel border border-slate-200/70 shadow-md rounded-2xl overflow-hidden relative bg-white/60 flex flex-col">
 
-          <div className="px-6 py-3.5 border-b border-slate-200 bg-white/80 flex items-center justify-between flex-wrap gap-3 shrink-0 z-10">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-50 rounded-lg"><Network className="w-4 h-4 text-indigo-600" /></div>
+          <div className="px-6 py-4 border-b border-slate-200 bg-white/80 flex items-center justify-between flex-wrap gap-3 shrink-0 z-10">
+            <div className="flex items-center gap-3.5">
+              <div className="p-3 bg-indigo-50 rounded-xl"><Network className="w-6 h-6 text-indigo-600" /></div>
               <div>
-                <h3 className="font-bold text-slate-800 text-sm">B-Rep Topology Graph — {project.name}</h3>
-                <p className="text-[10px] text-slate-400">Viewport Gestures Disabled · Native Page Scaling Active</p>
+                <h3 className="font-extrabold text-slate-800 text-xl tracking-tight">B-Rep Topology Graph — {project.name}</h3>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                  Click &amp; Drag to Pan · Pinch or Buttons to Zoom · Scroll to Move Page
+                </p>
               </div>
             </div>
-            <button
-              onClick={() => fitView({ duration: 700, padding: 0.2 })}
-              className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:border-indigo-300"
-            >
-              Recenter Graph
-            </button>
           </div>
 
-          {/* This wrapper catches clicks to deselect nodes, but lets trackpad zoom pass through */}
+          {/* FIX: onWheelCapture lets plain scroll pass to the page,
+              only intercepts ctrl/meta+wheel for pinch-zoom inside graph */}
           <div
             className="relative w-full h-[650px]"
-            onClick={() => { setFocusedNodeId(null); setSelectedIssue(null); }}
+            onWheelCapture={handleWheelCapture}
           >
+            {/* Zoom Controls — increased factor for snappier zoom */}
+            <div className="absolute bottom-6 right-6 z-10 flex flex-col shadow-2xl rounded-2xl overflow-hidden bg-white/95 backdrop-blur-md border border-slate-200">
+              <button
+                onClick={() => zoomIn({ duration: 200, factor: 1.4 })}
+                className="w-14 h-14 flex items-center justify-center hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 border-b border-slate-200 text-3xl font-light transition-colors"
+                title="Zoom In"
+              >
+                +
+              </button>
+              <button
+                onClick={() => zoomOut({ duration: 200, factor: 1.4 })}
+                className="w-14 h-14 flex items-center justify-center hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 border-b border-slate-200 text-4xl font-light transition-colors"
+                title="Zoom Out"
+              >
+                −
+              </button>
+              <button
+                onClick={() => fitView({ padding: 0.1, duration: 250 })}
+                className="w-14 h-14 flex items-center justify-center hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 transition-colors"
+                title="Fit to Screen"
+              >
+                <Maximize2 className="w-6 h-6" />
+              </button>
+            </div>
+
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -380,15 +427,44 @@ function GDLGraphInner() {
               onNodeMouseEnter={handleNodeMouseEnter}
               onNodeMouseLeave={handleNodeMouseLeave}
               onNodeClick={handleNodeClick}
+              onPaneClick={handlePaneClick}
               fitView
-              fitViewOptions={{ padding: 0.15, maxZoom: 1.1 }}
-              // THE SILVER BULLET: Disables ReactFlow from catching your mouse/trackpad events, 
-              // but explicitly keeps pointer events active on the nodes so they can be clicked.
-              className="bg-transparent h-full w-full pointer-events-none [&_.react-flow__node]:pointer-events-auto"
+              fitViewOptions={{ padding: 0.1, maxZoom: 1.2, duration: 250 }}
+              translateExtent={dynamicExtent}
+              minZoom={0.3}
+              maxZoom={3}
+
+              // ── Scroll behaviour fixes ──────────────────────────────────
+              // Wheel does NOT zoom or pan the graph — page scrolls normally
+              zoomOnScroll={false}
+              panOnScroll={false}
+              // Critical: don't consume wheel events so the page can scroll
+              preventScrolling={false}
+
+              // ── Zoom / pan controls ─────────────────────────────────────
+              panOnDrag={true}           // drag to pan
+              zoomOnPinch={true}         // trackpad pinch still zooms
+              zoomOnDoubleClick={true}   // double-click also zooms in
+
+              className="bg-transparent h-full w-full cursor-grab active:cursor-grabbing"
             >
-              <Background variant="dots" color="#cbd5e1" gap={24} size={1.3} />
+              <Background variant="dots" color="#cbd5e1" gap={24} size={1.5} />
+
+              <MiniMap
+                position="bottom-left"
+                className="!bg-white/90 !backdrop-blur-md !border-slate-200 !shadow-lg !rounded-xl overflow-hidden m-5"
+                nodeColor={(node) => {
+                  if (node.id === 'root') return '#94a3b8';
+                  if (node.id.startsWith('v')) return '#4ade80';
+                  if (node.id.startsWith('m')) return '#a5b4fc';
+                  if (node.id.startsWith('ERR')) return '#f87171';
+                  return '#cbd5e1';
+                }}
+                maskColor="rgba(248, 250, 252, 0.7)"
+              />
             </ReactFlow>
           </div>
+
         </div>
       </motion.div>
 

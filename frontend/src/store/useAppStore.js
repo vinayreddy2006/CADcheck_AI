@@ -86,9 +86,10 @@ export const ALL_ISSUES_DB = [
 const FLANGE_ISSUES = [ALL_ISSUES_DB[0], ALL_ISSUES_DB[1], ALL_ISSUES_DB[2]];
 const CAR_DOOR_ISSUES = [ALL_ISSUES_DB.find(i => i.id === 'ERR-22'), ALL_ISSUES_DB.find(i => i.id === 'ERR-21'), ALL_ISSUES_DB.find(i => i.id === 'ERR-23')];
 
+// FIXED THE ORDER: Project 1 is now Car Door Panel, Project 2 is Industrial Flange
 const DEMO_PROJECT_1 = {
-  _id: 'static-demo-001',
-  name: 'Industrial Flange',
+  _id: 'static-demo-002', // Explicitly Car Door ID
+  name: 'Car Door Panel',
   status: 'pending',
   cadFileUrl: 'DEMO_MODE',
   validationScore: '0%',
@@ -97,8 +98,8 @@ const DEMO_PROJECT_1 = {
 };
 
 const DEMO_PROJECT_2 = {
-  _id: 'static-demo-002',
-  name: 'Car Door Panel',
+  _id: 'static-demo-001', // Explicitly Flange ID
+  name: 'Industrial Flange',
   status: 'pending',
   cadFileUrl: 'DEMO_MODE',
   validationScore: '0%',
@@ -221,8 +222,9 @@ export const useAppStore = create((set, get) => ({
       set((state) => ({ inferenceLogs: [...state.inferenceLogs, '[INFERENCE] Checking rules against ISO database...'] }));
       await new Promise(r => setTimeout(r, 2000));
 
-      // Slice the errors to exactly top 3 based on Severity!
-      const targetIssues = activeProjectId === DEMO_PROJECT_1._id ? FLANGE_ISSUES : CAR_DOOR_ISSUES;
+      // FIXED LOGIC: Match by explicit ID instead of variable name
+      const targetIssues = activeProjectId === 'static-demo-002' ? CAR_DOOR_ISSUES : FLANGE_ISSUES;
+
       const sortedTrimmedIssues = targetIssues.sort((a, b) => {
         const ranks = { 'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
         return ranks[a.severity] - ranks[b.severity];
@@ -234,7 +236,7 @@ export const useAppStore = create((set, get) => ({
         projects: state.projects.map(p => p._id === activeProjectId ? {
           ...p,
           status: 'completed',
-          validationScore: activeProjectId === DEMO_PROJECT_1._id ? '82.5%' : '91.2%',
+          validationScore: activeProjectId === 'static-demo-001' ? '82.5%' : '91.2%',
           stats: { totalNodes: 24502, edges: 51204, volume: '8400 cm³', density: '2.7 g/cm³' },
           issues: sortedTrimmedIssues
         } : p)
