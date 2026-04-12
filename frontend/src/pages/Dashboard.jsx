@@ -300,12 +300,12 @@ export default function Dashboard() {
 
   const handleSelectDemo = (id) => {
     setActiveProject(id);
-    navigate('/cad-viewer');
+    navigate('/system-flow');
   };
 
   const handleSelectUser = (id) => {
     setActiveProject(id);
-    navigate('/cad-viewer');
+    navigate('/system-flow');
   };
 
   const handleDeleteProject = useCallback(async (id) => {

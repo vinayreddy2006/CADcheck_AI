@@ -424,7 +424,7 @@ export default function CADViewer() {
             className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/80 rounded-2xl shadow-2xl"
           >
             <BrainCircuit className="w-24 h-24 text-blue-500 mb-6 animate-pulse" />
-            <h2 className="text-3xl font-bold text-white mb-2">Gemini AI is Analyzing Geometry</h2>
+            <h2 className="text-3xl font-bold text-white mb-2">Aegis AI is Analyzing Geometry</h2>
             <p className="text-blue-300 font-mono mb-8 animate-pulse">Current Stage: {pipelineState.toUpperCase()}...</p>
             <div className="w-96 bg-slate-800 rounded-full h-2 mb-4 overflow-hidden">
               <motion.div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full" initial={{ width: "0%" }} animate={{ width: pipelineState === 'extraction' ? "30%" : pipelineState === 'graph' ? "60%" : "90%" }} transition={{ duration: 0.5 }} />
@@ -456,7 +456,7 @@ export default function CADViewer() {
             <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 bg-slate-50">
               <Cuboid className="w-12 h-12 mb-3 text-slate-300" />
               <p className="font-bold text-lg text-slate-700">Non-STL File Uploaded</p>
-              <p className="text-sm">Gemini validation completed successfully, but the 3D preview only supports .STL files.</p>
+              <p className="text-sm"> validation completed successfully, but the 3D preview only supports .STL files.</p>
             </div>
           ) : isDemo ? (
             <div className="w-full h-full p-4">
@@ -501,7 +501,7 @@ export default function CADViewer() {
                   </Center>
                 </Suspense>
                 <OrbitControls makeDefault autoRotate autoRotateSpeed={2} />
-              </Canvas>
+              </Canvas> 
             </div>
           )}
         </div>

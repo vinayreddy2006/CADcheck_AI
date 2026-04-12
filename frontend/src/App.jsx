@@ -4,7 +4,6 @@ import { useAppStore } from './store/useAppStore';
 
 import Landing from './pages/Landing';
 import MainLayout from './components/layout/MainLayout';
-import CADShell from './components/layout/CADShell'; // <-- Imported the new CAD Shell
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import SystemFlow from './pages/SystemFlow';
@@ -34,9 +33,7 @@ export default function App() {
 
         {/* Protected Dashboard Layout (Wrapped in CAD Environment) */}
         <Route element={
-          <CADShell>
             <MainLayout />
-          </CADShell>
         }>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="system-flow" element={<SystemFlow />} />
