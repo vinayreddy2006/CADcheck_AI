@@ -4,6 +4,7 @@ import { useAppStore } from './store/useAppStore';
 
 import Landing from './pages/Landing';
 import MainLayout from './components/layout/MainLayout';
+import CADShell from './components/layout/CADShell'; // <-- Imported the new CAD Shell
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import SystemFlow from './pages/SystemFlow';
@@ -27,11 +28,16 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Routes (No CAD Wrapper) */}
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
 
-        {/* Protected Dashboard Layout */}
-        <Route element={<MainLayout />}>
+        {/* Protected Dashboard Layout (Wrapped in CAD Environment) */}
+        <Route element={
+          <CADShell>
+            <MainLayout />
+          </CADShell>
+        }>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="system-flow" element={<SystemFlow />} />
           <Route path="cad-viewer" element={<CADViewer />} />
@@ -40,6 +46,8 @@ export default function App() {
           <Route path="reasoning" element={<Reasoning />} />
           <Route path="validation" element={<Validation />} />
         </Route>
+
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
